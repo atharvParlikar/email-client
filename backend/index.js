@@ -19,6 +19,7 @@ const config = {
 app.get('/mails/:range/:body?', (req, res) => {
   // Connection configuration
   const imap = new Imap(config);
+  console.log("got a request");
 
   // Event handler for successful connection
   imap.once('ready', () => {
@@ -49,7 +50,7 @@ app.get('/mails/:range/:body?', (req, res) => {
 
       const fetchOptions = {
         markSeen: false,
-        bodies: body.toLowerCase() === 'header'  ? "HEADER.FIELDS (TO FROM SUBJECT)" : body.toUpperCase(),
+        bodies: body.toLowerCase() === 'header'  ? "HEADER.FIELDS (DATE TO FROM SUBJECT)" : body.toUpperCase(),
         struct: true,
       };
 
