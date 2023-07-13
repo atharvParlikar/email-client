@@ -1,0 +1,20 @@
+{
+  "name": "email-client",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "dev": "nodemon index.js"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "cors": "^2.8.5",
+    "express": "^4.18.2",
+    "imap-simple": "^5.1.0",
+    "mailparser": "^3.6.5",
+    "node-imap": "^0.9.6",
+    "nodemon": "^3.0.1"
+  }
+}
