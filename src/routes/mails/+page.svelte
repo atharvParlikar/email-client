@@ -34,6 +34,7 @@
 		} else if (event.key === 'k' && highlight < uids[0]) {
 			highlight++;
 		}
+
 		let highlighted = document.getElementsByClassName('highlight')[0];
 		const rect = highlighted.getBoundingClientRect();
 
@@ -45,32 +46,47 @@
 
 		if (event.key === 'Enter') {
 			if (selected_uid === highlight) selected = !selected;
+			else selected = true;
 			selected_uid = highlight;
 		}
 	}}
 />
 
 <main>
-	<div class="py-5">
-		<h1 class="text-xl font-bold ml-5">Mails Inbox</h1>
+	<div class="py-5 shadow-md">
+		<h1 class="text-xl font-bold ml-4">Mails Inbox</h1>
 	</div>
-	<div class="grid grid-cols-2 gap-2 overflow-y-hidden overflow-x-hidden mx-5">
-		<div class="h-[88vh] overflow-y-auto">
+	<div class="grid grid-cols-2 gap-4 overflow-y-hidden overflow-x-hidden mx-5">
+		<!-- Email list -->
+		<div class="h-[88vh] overflow-y-auto pr-4">
 			{#each uids as uid}
-				<EmailListElement mail={mails[uid]} {uid} {highlight} />
+				<div
+					on:click={() => {
+						selected = true;
+						selected_uid = uid;
+						highlight = uid;
+					}}
+				>
+					<EmailListElement mail={mails[uid]} {uid} {highlight} />
+				</div>
 			{/each}
 		</div>
+		<!-- Email content -->
 		{#if selected}
-			<div>
-				<iframe
-					class="w-full h-[88vh] border-2 border-gray-500 rounded-md p-1"
-					title="mail"
-					srcdoc={scrollbarcss + mails[selected_uid].html}
-					frameborder="0"
-				/>
-			</div>
+			<iframe
+				class="w-full h-[88vh] border-2 border-gray-500 rounded-md p-1"
+				title="mail"
+				srcdoc={scrollbarcss + mails[selected_uid].html}
+				frameborder="0"
+			/>
 		{:else}
-			<div />
+			<div
+				class="w-full h-[88vh] border-2 border-gray-500 rounded-md p-1 flex justify-center items-center"
+			>
+				<p>
+					Total mails: {uids[0]}
+				</p>
+			</div>
 		{/if}
 	</div>
 </main>
