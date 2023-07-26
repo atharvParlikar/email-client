@@ -9,6 +9,22 @@
 
 	let selected = false;
 	let selected_uid;
+
+	const scrollbarcss = `<style>
+::-webkit-scrollbar {
+    width: 6px;
+}
+::-webkit-scrollbar-track {
+    background-color: #f1f1f1;
+}
+::-webkit-scrollbar-thumb {
+    background-color: #888;
+    border-radius: 3px;
+}
+::-webkit-scrollbar-thumb:hover {
+    background-color: #555;
+}
+</style>`;
 </script>
 
 <svelte:window
@@ -34,10 +50,11 @@
 	}}
 />
 
-<main class="m-5">
-	<h1 class="text-xl font-bold">Mails Inbox</h1>
-	<h1 class="text-xl font-bold">[highlight] {highlight}</h1>
-	<div class="grid grid-cols-2 gap-2 overflow-y-hidden overflow-x-hidden">
+<main>
+	<div class="py-5">
+		<h1 class="text-xl font-bold ml-5">Mails Inbox</h1>
+	</div>
+	<div class="grid grid-cols-2 gap-2 overflow-y-hidden overflow-x-hidden mx-5">
 		<div class="h-[88vh] overflow-y-auto">
 			{#each uids as uid}
 				<EmailListElement mail={mails[uid]} {uid} {highlight} />
@@ -48,7 +65,7 @@
 				<iframe
 					class="w-full h-[88vh] border-2 border-gray-500 rounded-md p-1"
 					title="mail"
-					srcdoc={mails[selected_uid].html}
+					srcdoc={scrollbarcss + mails[selected_uid].html}
 					frameborder="0"
 				/>
 			</div>

@@ -2,6 +2,10 @@ import express from 'express';
 import cors from 'cors';
 import { simpleParser } from 'mailparser';
 import Imap from 'node-imap';
+import dotenv from 'dotenv';
+
+dotenv.config();
+const { IMAP_PASSWORD } = process.env;
 
 const app = express();
 app.use(cors());
@@ -9,9 +13,9 @@ const port = 3000;
 
 const config = {
   user: 'atharvparlikar@gmail.com',
-  password: 'foaesytlacijvfge',
+  password: IMAP_PASSWORD,
   host: 'imap.gmail.com',
-  port: 993, 
+  port: 993,
   tls: true,
 };
 
@@ -30,7 +34,7 @@ app.get('/mails/:range/:body?', (req, res) => {
         return;
       }
 
-      let {range, body} = req.params;
+      let { range, body } = req.params;
 
 
       body = body || "";
@@ -45,10 +49,10 @@ app.get('/mails/:range/:body?', (req, res) => {
       if (range.split(':')[0] === "latest") {
         range = `${total - parseInt(range.split(":")[1])}:${total}`
       }
-      
+
       const fetchOptions = {
         markSeen: false,
-        bodies: body.toLowerCase() === 'header'  ? "HEADER.FIELDS (DATE TO FROM SUBJECT)" : body.toUpperCase(),
+        bodies: body.toLowerCase() === 'header' ? "HEADER.FIELDS (DATE TO FROM SUBJECT)" : body.toUpperCase(),
         struct: true,
       };
 
