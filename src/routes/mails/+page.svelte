@@ -37,8 +37,8 @@
 <main class="m-5">
 	<h1 class="text-xl font-bold">Mails Inbox</h1>
 	<h1 class="text-xl font-bold">[highlight] {highlight}</h1>
-	<div class="grid grid-cols-2">
-		<div class="overflow-y-auto h-[vh90]">
+	<div class="grid grid-cols-2 gap-2 overflow-y-hidden overflow-x-hidden">
+		<div class="h-[88vh] overflow-y-auto">
 			{#each uids as uid}
 				<EmailListElement mail={mails[uid]} {uid} {highlight} />
 			{/each}
@@ -46,7 +46,7 @@
 		{#if selected}
 			<div>
 				<iframe
-					class="w-full h-[90vh] border-2 border-gray-500 mx-4 rounded-md md-2"
+					class="w-full h-[88vh] border-2 border-gray-500 rounded-md p-1"
 					title="mail"
 					srcdoc={mails[selected_uid].html}
 					frameborder="0"

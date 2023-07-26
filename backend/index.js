@@ -1,7 +1,7 @@
-const express = require('express');
-const cors = require("cors")
-const { simpleParser } = require('mailparser');
-const Imap = require('node-imap');
+import express from 'express';
+import cors from 'cors';
+import { simpleParser } from 'mailparser';
+import Imap from 'node-imap';
 
 const app = express();
 app.use(cors());
