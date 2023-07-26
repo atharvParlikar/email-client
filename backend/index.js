@@ -46,13 +46,14 @@ app.get('/mails/:range/:body?', (req, res) => {
         range = `${total - parseInt(range.split(":")[1])}:${total}`
       }
       
-      console.log(range)
-
       const fetchOptions = {
         markSeen: false,
         bodies: body.toLowerCase() === 'header'  ? "HEADER.FIELDS (DATE TO FROM SUBJECT)" : body.toUpperCase(),
         struct: true,
       };
+
+      console.log(fetchOptions);
+      console.log('[debug] ', body)
 
       const fetch = imap.seq.fetch(`${range}`, fetchOptions);
 
@@ -73,13 +74,10 @@ app.get('/mails/:range/:body?', (req, res) => {
 
       fetch.once('end', async () => {
         imap.end();
-        const parsedEmails = [];
+        const parsedEmails = {};
         let uid = total - emails.length + 1;
         for (const email of emails) {
-          parsedEmails.push({
-            uid,
-            mail:await simpleParser(email)
-          });
+          parsedEmails[uid] = await simpleParser(email);
           uid++;
         }
         res.json(parsedEmails); // Send the retrieved emails as a JSON response

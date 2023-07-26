@@ -2,7 +2,7 @@ import axios from "axios";
 
 export async function load() {
   try {
-    let mails = await axios.get('http://localhost:3000/mails/latest:20/header');
+    let mails = await axios.get('http://localhost:3000/mails/latest:20/');
 
     mails = mails.data;
     if (mails) {
