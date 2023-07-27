@@ -19,85 +19,87 @@ const config = {
   tls: true,
 };
 
-// API endpoint to retrieve emails
-app.get('/mails/:range/:body?', (req, res) => {
-  // Connection configuration
-  const imap = new Imap(config);
-  console.log("got a request");
 
-  // Event handler for successful connection
-  imap.once('ready', () => {
-    imap.openBox('INBOX', false, (err, mailbox) => {
-      if (err) {
-        console.error(err);
-        res.sendStatus(500); // Internal Server Error
-        return;
-      }
+async function getEmails(range, body) {
+  return new Promise((resolve, reject) => {
+    const imap = new Imap(config);
 
-      let { range, body } = req.params;
-
-
-      body = body || "";
-
-      if (!['', 'header', 'text'].map(t => body === t || body === t.toUpperCase()).reduce((acc, curr) => acc || curr, false)) {
-        res.json({
-          error: "invalid email-body params"
-        });
-      }
-
-      const total = mailbox.messages.total;
-      if (range.split(':')[0] === "latest") {
-        range = `${total - parseInt(range.split(":")[1])}:${total}`
-      }
-
-      const fetchOptions = {
-        markSeen: false,
-        bodies: body.toLowerCase() === 'header' ? "HEADER.FIELDS (DATE TO FROM SUBJECT)" : body.toUpperCase(),
-        struct: true,
-      };
-
-      console.log(fetchOptions);
-      console.log('[debug] ', body)
-
-      const fetch = imap.seq.fetch(`${range}`, fetchOptions);
-
-      const emails = [];
-
-      fetch.on('message', (msg) => {
-        msg.on('body', (stream) => {
-          let body = '';
-          stream.on('data', (chunk) => {
-            body += chunk.toString('utf8');
-          });
-
-          stream.on('end', () => {
-            emails.push(body);
-          });
-        });
-      });
-
-      fetch.once('end', async () => {
-        imap.end();
-        const parsedEmails = {};
-        let uid = total - emails.length + 1;
-        for (const email of emails) {
-          parsedEmails[uid] = await simpleParser(email);
-          uid++;
+    imap.once('ready', () => {
+      imap.openBox('INBOX', false, (err, mailbox) => {
+        if (err) {
+          console.error(err);
+          reject(err);
+          return;
         }
-        res.json(parsedEmails); // Send the retrieved emails as a JSON response
+
+        if (!['', 'header', 'text'].map(t => body === t || body === t.toUpperCase()).reduce((acc, curr) => acc || curr, false)) {
+          reject(new Error("Invalid email-body parameter"));
+          return;
+        }
+
+        const total = mailbox.messages.total;
+        if (range.split(':')[0] === "latest") {
+          range = `${total - parseInt(range.split(":")[1])}:${total}`;
+        }
+
+        const fetchOptions = {
+          markSeen: false,
+          bodies: body.toLowerCase() === 'header' ? "HEADER.FIELDS (DATE TO FROM SUBJECT)" : body.toUpperCase(),
+          struct: true,
+        };
+
+        const fetch = imap.seq.fetch(`${range}`, fetchOptions);
+
+        const emails = [];
+
+        fetch.on('message', (msg) => {
+          msg.on('body', (stream) => {
+            let body = '';
+            stream.on('data', (chunk) => {
+              body += chunk.toString('utf8');
+            });
+
+            stream.on('end', () => {
+              emails.push(body);
+            });
+          });
+        });
+
+        fetch.once('end', async () => {
+          imap.end();
+          const parsedEmails = {};
+          let uid = total - emails.length + 1;
+          for (const email of emails) {
+            parsedEmails[uid] = await simpleParser(email);
+            uid++;
+          }
+          resolve(parsedEmails);
+        });
       });
     });
-  });
 
-  // Event handler for connection errors
-  imap.on('error', (err) => {
-    console.error(err);
-    res.sendStatus(500); // Internal Server Error
-  });
+    imap.on('error', (err) => {
+      console.error(err);
+      reject(err);
+    });
 
-  // Connect to the IMAP server
-  imap.connect();
+    imap.connect();
+  });
+}
+
+// API endpoint to retrieve emails
+app.get('/test', async (req, res) => {
+  const emails = await getEmails('latest:20', '');
+  console.log(emails); 
+  res.json(emails);
 });
+
+app.get('/mails/:range/:body?', async (req, res) => {
+  let {range, body} = req.params;
+  if (body === undefined) body = '';
+  const emails = await getEmails(range, body);
+  res.json(emails);
+})
 
 // Start the server
 app.listen(port, () => {

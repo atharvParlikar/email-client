@@ -13,7 +13,7 @@
 		<p class="text-md">{mail.subject}</p>
 		<p class="font-thin">{mail.from.text}</p>
 	</div>
-	<p class="text-sm min-w-[60px]">
+	<p class="text-sm min-w-[60px] text-right">
 		{new Date(mail.date).toString().split(' ').slice(1, 3).join(' ')}
 	</p>
 </div>

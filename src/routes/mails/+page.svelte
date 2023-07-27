@@ -10,6 +10,10 @@
 	let selected = false;
 	let selected_uid;
 
+	const categories = ['All', 'Important', 'Spam', 'Promotions'];
+
+	let selected_category = categories[0];
+
 	const scrollbarcss = `<style>
 ::-webkit-scrollbar {
     width: 6px;
@@ -52,13 +56,30 @@
 	}}
 />
 
+<!-- svelte-ignore a11y-click-events-have-key-events -->
 <main>
 	<div class="py-5 shadow-md">
 		<h1 class="text-xl font-bold ml-4">Mails Inbox</h1>
 	</div>
-	<div class="grid grid-cols-2 gap-4 overflow-y-hidden overflow-x-hidden mx-5">
+	<div class="grid grid-cols-12 gap-4 overflow-y-hidden overflow-x-hidden mx-5">
+		<div class="col-span-2">
+			<ul>
+				{#each categories as category}
+					<li
+						class={`p-3 w-full my-4 rounded-md border-2 border-gray-400 cursor-pointer hover:shadow-lg hover:border-gray-700 ${
+							category === selected_category
+								? 'bg-gray-800 text-white border-none'
+								: ''
+						}`}
+						on:click={() => (selected_category = category)}
+					>
+						{category}
+					</li>
+				{/each}
+			</ul>
+		</div>
 		<!-- Email list -->
-		<div class="h-[88vh] overflow-y-auto pr-4">
+		<div class="col-span-5 h-[88vh] overflow-y-auto pr-4">
 			{#each uids as uid}
 				<div
 					on:click={() => {
@@ -74,14 +95,14 @@
 		<!-- Email content -->
 		{#if selected}
 			<iframe
-				class="w-full h-[88vh] border-2 border-gray-500 rounded-md p-1"
+				class="col-span-5 w-full h-[88vh] border-2 border-gray-500 rounded-md p-1"
 				title="mail"
 				srcdoc={scrollbarcss + mails[selected_uid].html}
 				frameborder="0"
 			/>
 		{:else}
 			<div
-				class="w-full h-[88vh] border-2 border-gray-500 rounded-md p-1 flex justify-center items-center"
+				class="col-span-5 w-full h-[88vh] border-2 border-gray-500 rounded-md p-1 flex justify-center items-center"
 			>
 				<p>
 					Total mails: {uids[0]}
