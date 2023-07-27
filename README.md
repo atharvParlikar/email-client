@@ -2,6 +2,10 @@
 
 This project is at very early stage (not even mvp) so cannot really say anything about this but following are the features I plan to implement (if i can lol)
 
+## Screenshot
+
+![screenshot](https://imgur.com/4HUDajt)
+
 ## Features (upcoming)
 
 1. Programatically delete emails, using javascript as scripting langauge.
