@@ -4,7 +4,7 @@ This project is at very early stage (not even mvp) so cannot really say anything
 
 ## Screenshot
 
-![screenshot](https://imgur.com/4HUDajt)
+![screenshot](https://imgur.com/4HUDajt.png)
 
 ## Features (upcoming)
 
