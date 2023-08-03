@@ -10,6 +10,8 @@
 	let selected = false;
 	let selected_uid;
 
+	console.log(mails[uids[0]]);
+
 	const categories = ['All', 'Important', 'Spam', 'Promotions'];
 
 	let selected_category = categories[0];
@@ -94,12 +96,14 @@
 		</div>
 		<!-- Email content -->
 		{#if selected}
-			<iframe
-				class="col-span-5 w-full h-[88vh] border-2 border-gray-500 rounded-md p-1"
-				title="mail"
-				srcdoc={scrollbarcss + mails[selected_uid].html}
-				frameborder="0"
-			/>
+			<div class="col-span-5 w-full h-[88vh]">
+				<iframe
+					class="w-full h-[95%] border-2 border-gray-500 rounded-md p-1"
+					title="mail"
+					srcdoc={scrollbarcss + mails[selected_uid].html}
+					frameborder="0"
+				/>
+			</div>
 		{:else}
 			<div
 				class="col-span-5 w-full h-[88vh] border-2 border-gray-500 rounded-md p-1 flex justify-center items-center"

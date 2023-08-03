@@ -71,7 +71,7 @@ contextMenu({
 });
 
 function loadVite(port) {
-	mainWindow.loadURL(`http://localhost:${port}`).catch((e) => {
+	mainWindow.loadURL(`http://localhost:${port}/mails`).catch((e) => {
 		console.log('Error loading URL, retrying', e);
 		setTimeout(() => {
 			loadVite(port);
