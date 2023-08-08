@@ -23,6 +23,8 @@
 			selectionPoints.start = selection.anchorOffset;
 			selectionPoints.end = selection.focusOffset;
 
+			cursorPosition = selectionPoints.end;
+
 			if (selectionPoints.end === 0 && selection.focusOffset !== 0) {
 				console.log('triggerd');
 				console.log(`${selection.anchorOffset} ${selection.focusOffset}`);
@@ -88,7 +90,7 @@
 			const selection = window.getSelection();
 			const range = document.createRange();
 			range.selectNodeContents(document.getElementById('editor'));
-			console.log(range);
+			console.log(range.anchorOffset);
 			selection.addRange(range);
 		}
 
@@ -140,8 +142,10 @@
 	</div>
 	<div class="text-gray-100">
 		[debug]
-		<pre>cursorPosition: {cursorPosition}</pre>
-		<pre>text.length:    {text.length}</pre>
+		<pre>cursorPosition:  {cursorPosition}</pre>
+		<pre>text.length:     {text.length}</pre>
+		<pre>selection start: {selectionPoints.start}</pre>
+		<pre>selection end:   {selectionPoints.end}</pre>
 	</div>
 </div>
 

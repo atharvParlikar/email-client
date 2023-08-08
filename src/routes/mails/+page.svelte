@@ -115,3 +115,19 @@
 		{/if}
 	</div>
 </main>
+const windowStateManager = require('electron-window-state');
+const { app, BrowserWindow, ipcMain } = require('electron');
+const contextMenu = require('electron-context-menu');
+const serve = require('electron-serve');
+const path = require('path');
+
+try {
+	require('electron-reloader')(module);
+} catch (e) {
+	console.error(e);
+}
+
+const serveURL = serve({ directory: '.' });
+const port = process.env.PORT || 5173;
+const dev = !app.isPackaged;
+l
