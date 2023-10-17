@@ -12,7 +12,9 @@
   }`}
 >
   <div>
-    <p class="text-md">{mail.subject}</p>
+    <p class="text-md">
+      {mail.subject === undefined ? "NO SUBJECT" : mail.subject}
+    </p>
     <p class="font-light text-gray-500">{mail.from.text}</p>
   </div>
   <p class="text-sm min-w-[60px] text-right">

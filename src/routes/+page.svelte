@@ -22,52 +22,73 @@
 
   let close = () => (isOpen = false);
 
-  const handleCategoryChange = async (category) => {
-    console.log(`chenged category to ${category}`);
-    selected_category = category;
-
+  const handleCategoryChange = async (element) => {
+    selected_category = element.target.value;
+    selected = false;
     mails = {};
-
+    uids = [];
     mails = await axios.post("http://localhost:3000/mails/latest:20/", {
       folder: `[Gmail]/${selected_category}`,
     });
-
     mails = mails.data;
     uids = Object.keys(mails).reverse();
+    highlight = uids[0];
   };
 
   onMount(async () => {
     try {
+      // if mails cache not found
       if (localStorage.getItem("mails") === null) {
         mails = await axios.post("http://localhost:3000/mails/latest:20/", {
           folder: "[Gmail]/All Mail",
         });
         mails = mails.data;
         uids = Object.keys(mails);
+        uids = uids.reverse();
         highlight = uids[0];
         localStorage.setItem("mails", JSON.stringify(mails));
-      } else {
-        mails = JSON.parse(localStorage.getItem("mails"));
-        uids = Object.keys(mails);
+      }
+      // mails cache is present
+      else {
+        let total = await axios.post("http://localhost:3000/total", {
+          folder: "[Gmail]/All Mail",
+        });
+
+        total = parseInt(total.data);
+        const cachedMails = JSON.parse(localStorage.getItem("mails"));
+        const cachedTotal = Object.keys(cachedMails).reverse()[0];
+
+        console.log(cachedTotal, total);
+
+        let newMails = {};
+
+        if (cachedTotal < total) {
+          console.log("couple of new emails so fetching them...");
+          newMails = await axios.post(
+            `http://localhost:3000/mails/latest:${
+              total - cachedTotal > 20 ? 20 : total - cachedTotal
+            }`,
+            {
+              folder: "[Gmail]/All Mail",
+            }
+          );
+          newMails = newMails.data;
+        }
+
+        if (Object.keys(newMails).length == 20) {
+          mails = newMails;
+        } else {
+          mails = {
+            ...newMails,
+            ...Object.fromEntries(
+              Object.entries(cachedMails).slice(Object.keys(newMails).length)
+            ),
+          };
+        }
+        uids = Object.keys(mails).reverse();
+        console.log(uids);
         highlight = uids[0];
-
-        console.log(mails);
-
-        const cachedTotal = Object.keys(mails)[0];
-
-        // if (cachedTotal < total) {
-        //   console.log("couple of new emails so fetching them...");
-        //   const newMails = await axios.post(
-        //     `http://localhost:3000/mails/latest:${total - cachedTotal}`,
-        //     {
-        //       folder: "[Gmail]/All Mail",
-        //     }
-        //   );
-        //   mails = {
-        //     ...newMails,
-        //     ...mails,
-        //   };
-        // }
+        localStorage.setItem("mails", JSON.stringify(mails));
       }
 
       if (localStorage.getItem("categories") === null) {
@@ -78,15 +99,9 @@
         categories = localStorage.getItem("categories").split(",");
       }
 
+      console.log(mails[uids[0]]);
+
       selected_category = categories[0];
-
-      let total = await axios.post("http://localhost:3000/total", {
-        folder: "[Gmail]/All Mail",
-      });
-
-      total = total.data;
-
-      console.log(total);
     } catch (err) {
       console.error(err);
     }
@@ -111,15 +126,14 @@
 
 <svelte:window
   on:keydown={(event) => {
-    if (event.key === "j") console.log("j");
+    console.log(highlight, uids[uids.length - 1]);
+
     if (isOpen && event.key === "Escape") isOpen = false;
 
     if (!isOpen) {
       if (event.key === "j" && highlight > uids[uids.length - 1]) {
-        console.log("j triggered");
         highlight = (parseInt(highlight) - 1).toString();
       } else if (event.key === "k" && highlight < uids[0]) {
-        console.log("k triggered");
         highlight = (parseInt(highlight) + 1).toString();
       }
 
@@ -166,6 +180,7 @@
           {#each categories as category}
             <ListBoxItem
               bind:group={selected_category}
+              on:click={handleCategoryChange}
               name="medium"
               value={category}>{category}</ListBoxItem
             >
@@ -176,7 +191,7 @@
     <div
       class="w-5/12 mx-2 border-2 border-gray-400 shadow-2xl h-[90vh] rounded-md overflow-y-auto"
     >
-      {#if Object.keys(mails).length > 0}
+      {#if uids.length > 0}
         {#each uids as uid}
           <!-- svelte-ignore a11y-click-events-have-key-events -->
           <!-- svelte-ignore a11y-no-static-element-interactions -->
@@ -196,12 +211,21 @@
     <div class="w-5/12 mx-2 border-2 border-gray-400 shadow-2xl rounded-md">
       {#if selected}
         <div class="col-span-5 w-full h-[90vh]">
-          <iframe
-            class="w-full h-full rounded-md p-1"
-            title="mail"
-            srcdoc={scrollbarcss + mails[selected_uid].html}
-            frameborder="0"
-          />
+          {#if mails[selected_uid].html !== false}
+            <iframe
+              class="w-full h-full rounded-md p-1"
+              title="mail"
+              srcdoc={scrollbarcss + mails[selected_uid].html}
+              frameborder="0"
+            />
+          {:else}
+            <iframe
+              class="w-full h-full rounded-md p-1"
+              title="mail"
+              srcdoc={scrollbarcss + mails[selected_uid].textAsHtml}
+              frameborder="0"
+            />
+          {/if}
         </div>
       {:else}
         <div

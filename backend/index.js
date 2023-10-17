@@ -4,13 +4,46 @@ import { simpleParser } from 'mailparser';
 import Imap from 'node-imap';
 import dotenv from 'dotenv';
 import nodemailer from 'nodemailer';
+import winston from 'winston';
+import expressWinston from 'express-winston';
 
 dotenv.config();
 const { IMAP_PASSWORD } = process.env;
 
+const logger = winston.createLogger({
+  level: 'info',
+  format: winston.format.combine(
+    winston.format.timestamp(), // Include timestamp
+    winston.format.printf(({ timestamp, level, message }) => {
+      return `${timestamp} [${level}]: ${message}`;
+    })
+  ),
+  transports: [
+    new winston.transports.Console(),
+    new winston.transports.File({ filename: 'api.log' }),
+  ],
+});
+
 const app = express();
+
+// middlewares
 app.use(cors());
 app.use(express.json())
+app.use(
+  expressWinston.logger({
+    transports: [
+      new winston.transports.Console(),
+      new winston.transports.File({ filename: 'api.log' }),
+    ],
+    format: winston.format.combine(
+      winston.format.timestamp({ format: "HH:mm:ss" }), // Include timestamp
+      winston.format.printf(({ timestamp, level, message }) => {
+        return `${timestamp} [${level}]: ${message}`;
+      })
+    ),
+  })
+);
+
 const port = 3000;
 
 const config = {
@@ -44,7 +77,7 @@ async function getEmails(range, body, folder) {
 
         const total = mailbox.messages.total;
         console.log('total: ', total);
-        const rangeStart = total - parseInt(range.split(":")[1]);
+        const rangeStart = total - parseInt(range.split(":")[1]) + 1;
 
         if (range.split(':')[0] === "latest") {
           range = `${rangeStart < 0 ? 1 : rangeStart}:${total}`;
@@ -98,9 +131,6 @@ async function getEmails(range, body, folder) {
   });
 }
 
-
-
-
 async function getTotalMails(folder) {
   return new Promise((resolve, reject) => {
     const imap = new Imap(config);
@@ -129,8 +159,8 @@ async function getFolders() {
   return new Promise((resolve, reject) => {
     const imap = new Imap(config);
 
-    imap.once('ready', function() {
-      imap.getBoxes(function(err, boxes) {
+    imap.once('ready', function () {
+      imap.getBoxes(function (err, boxes) {
         if (err) {
           imap.end();
           reject(err);
@@ -142,7 +172,7 @@ async function getFolders() {
       });
     });
 
-    imap.once('error', function(err) {
+    imap.once('error', function (err) {
       imap.end();
       reject(err);
     });
@@ -184,7 +214,6 @@ async function sendMail(to, subject, text) {
 
 // API endpoint to retrieve emails
 app.post('/mails/:range/:body?', async (req, res) => {
-  dlog("got a request on POST:/mails")
   let { range, body } = req.params;
   let { folder } = req.body;
   if (body === undefined) body = '';
@@ -208,7 +237,6 @@ app.get("/folders", async (req, res) => {
 // API endpoint to retrieve total number of emails in specific folder
 app.post('/total', async (req, res) => {
   const { folder } = req.body;
-  dlog("got request");
   dlog(`folder ${folder}`);
   const total = await getTotalMails(folder);
   res.json(total);
