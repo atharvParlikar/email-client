@@ -8,3 +8,6 @@ This email client is specifically made for software engineers and linux nerds.
 
 - [x] Send emails in Markdown mode
 - [ ] Vim mode for email composition
+- [ ] Customizable UI
+- [ ] Email Deletion with imap-queries
+- [ ] Mass unsubscribe
