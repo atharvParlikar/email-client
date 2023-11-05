@@ -1,0 +1,14 @@
+{
+  "transports": [
+    {
+      "type": "console",
+      "format": "combined"
+    },
+    {
+      "type": "file",
+      "filename": "api.log",
+      "level": "info",
+      "format": "combined"
+    }
+  ]
+}

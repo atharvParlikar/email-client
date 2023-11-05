@@ -2,6 +2,14 @@
   export let mail;
   export let highlight;
   export let uid;
+  export let deleteStage;
+
+  const isin = (array, item) => {
+    for (const i of array) {
+      if (i === item) return true;
+    }
+    return false;
+  };
 </script>
 
 <div
@@ -9,7 +17,7 @@
     highlight == uid
       ? "shadow-lg border-primary-500 highlight"
       : "border-gray-400"
-  }`}
+  } ${isin(deleteStage, uid) ? "bg-red-300 border-red-600" : ""}`}
 >
   <div>
     <p class="text-md">

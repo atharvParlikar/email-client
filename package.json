@@ -39,6 +39,7 @@
     "node-imap": "^0.9.6",
     "nodemailer": "^6.9.6",
     "nodemon": "^3.0.1",
+    "snarkdown": "^2.0.0",
     "winston": "^3.11.0"
   }
 }

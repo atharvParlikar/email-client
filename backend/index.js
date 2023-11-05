@@ -10,20 +10,6 @@ import expressWinston from 'express-winston';
 dotenv.config();
 const { IMAP_PASSWORD } = process.env;
 
-const logger = winston.createLogger({
-  level: 'info',
-  format: winston.format.combine(
-    winston.format.timestamp(), // Include timestamp
-    winston.format.printf(({ timestamp, level, message }) => {
-      return `${timestamp} [${level}]: ${message}`;
-    })
-  ),
-  transports: [
-    new winston.transports.Console(),
-    new winston.transports.File({ filename: 'api.log' }),
-  ],
-});
-
 const app = express();
 
 // middlewares
@@ -55,7 +41,10 @@ const config = {
 };
 
 
-const dlog = (s) => console.log(`[🐞 DEBUG] ${s}`)
+const dlog = (s) => console.log(`[🐞 DEBUG] ${s}`);
+const handleError = (err) => {
+  console.log(`[ERROR] ${err}`);
+}
 
 async function getEmails(range, body, folder) {
   return new Promise((resolve, reject) => {
@@ -72,11 +61,13 @@ async function getEmails(range, body, folder) {
 
         if (!['', 'header', 'text'].map(t => body === t || body === t.toUpperCase()).reduce((acc, curr) => acc || curr, false)) {
           reject(new Error("Invalid email-body parameter"));
-          return;
         }
 
         const total = mailbox.messages.total;
-        console.log('total: ', total);
+        if (total === 0) {
+          console.log("Got here");
+          resolve({});
+        }
         const rangeStart = total - parseInt(range.split(":")[1]) + 1;
 
         if (range.split(':')[0] === "latest") {
@@ -165,7 +156,6 @@ async function getFolders() {
           imap.end();
           reject(err);
         } else {
-          // const folderNames = Object.keys(boxes);
           imap.end();
           resolve(Object.keys(boxes['[Gmail]'].children));
         }
@@ -173,7 +163,7 @@ async function getFolders() {
     });
 
     imap.once('error', function (err) {
-      imap.end();
+      imap.end()
       reject(err);
     });
 
@@ -181,10 +171,39 @@ async function getFolders() {
   });
 }
 
+function deleteMails(mailUid, box) {
+  mailUid = parseInt(mailUid);
+  const imap = new Imap(config);
+
+  imap.once('ready', () => {
+    imap.openBox(box, false, (err, mailbox) => {
+      if (err) {
+        handleError(err);
+        return false;
+      }
+      console.log(mailbox.flags);
+      imap.addFlags(mailUid, ["\\Deleted"], (err) => {
+        if (err) {
+          handleError(err);
+          return false
+        };
+
+        imap.expunge((err) => {
+          if (err) {
+            handleError(err);
+            return false;
+          }
+          console.log(`UID: ${mailUid} deleted permenantly...`);
+        })
+      });
+    });
+  });
+  imap.connect();
+}
 
 async function sendMail(to, subject, text) {
   const transporter = nodemailer.createTransport({
-    service: "Gmail", // Use your email service provider (e.g., Gmail, Yahoo, etc.)
+    service: "Gmail",
     auth: {
       user: config.user, // Your email address
       pass: config.password, // Your email password or application-specific password
@@ -211,7 +230,6 @@ async function sendMail(to, subject, text) {
   });
 }
 
-
 // API endpoint to retrieve emails
 app.post('/mails/:range/:body?', async (req, res) => {
   let { range, body } = req.params;
@@ -226,12 +244,12 @@ app.post("/send/", async (req, res) => {
   const sent = await sendMail(to, subject, text);
   if (Object.hasOwnProperty('error')) res.json({ error: sent.error });
   else res.json({ message: sent });
-})
+});
 
 // API endpoint to retrieve folders
 app.get("/folders", async (req, res) => {
   res.json(await getFolders());
-})
+});
 
 
 // API endpoint to retrieve total number of emails in specific folder
@@ -240,7 +258,17 @@ app.post('/total', async (req, res) => {
   dlog(`folder ${folder}`);
   const total = await getTotalMails(folder);
   res.json(total);
-})
+});
+
+// API endpoint to delete emails
+app.post('/delete', (req, res) => {
+  const { mails, box } = req.body;
+  if (deleteMails(mails, box)) {
+    res.json({ message: true });
+    return;
+  }
+  res.json({ message: false });
+});
 
 // Start the server
 app.listen(port, () => {
