@@ -42,4 +42,4 @@ This is a passion project of mine, basically creating a perfect email client for
 - [ ] Vim mode for email composition
 - [ ] Customizable UI
 - [ ] Email Deletion with imap-queries
-  - [ ] Mass un-subscribe
+- [ ] Mass un-subscribe
